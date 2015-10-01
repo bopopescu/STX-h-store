@@ -1,0 +1,37 @@
+# 2015-09-29T20:10:42.026.0
+Buildfile: /home/ubuntu/huanchen/STX-h-store/build.xml
+hstore-site:
+Site is ready for action : Site=H00 / Address=localhost:21212 / Partitions={0, 1, 2, 3, 4, 5, 6, 7}
+20:11:43,669 [H00-incoming-00] (HStoreSiteStatus.java:158) INFO  - H00 - First non-sysproc transaction request recieved
+20:17:43,635 [H00-003] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 3
+20:17:43,636 [H00-005] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 5
+20:17:43,635 [H00-001] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 1
+20:17:43,637 [H00-006] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 6
+20:17:43,638 [H00-000] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 0
+20:17:43,638 [H00-007] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 7
+20:17:43,639 [H00-002] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 2
+20:17:43,639 [H00-004] (PartitionExecutor.java:1930) WARN  - Halting transaction processing at partition 4
+20:17:46,215 [H00-periodic] (HStoreCoordinator.java:1557) WARN  - Shutting down cluster with Exception
+java.lang.Exception: Shutdown command received at H00
+	at edu.brown.hstore.HStoreSite.processSysProc(HStoreSite.java:2037)
+	at edu.brown.hstore.HStoreSite.invocationProcess(HStoreSite.java:1947)
+	at edu.brown.hstore.HStoreSite.invocationQueue(HStoreSite.java:1834)
+	at edu.brown.hstore.ClientInterface$ClientInputHandler.handleMessage(ClientInterface.java:458)
+	at org.voltdb.network.VoltPort.call(VoltPort.java:146)
+	at org.voltdb.network.VoltNetwork$3.run(VoltNetwork.java:545)
+	at org.voltdb.network.VoltNetwork$2.run(VoltNetwork.java:238)
+	at org.voltdb.network.VoltNetwork$1$1.run(VoltNetwork.java:202)
+20:17:46,218 [H00-periodic] (HStoreCoordinator.java:1601) INFO  - Shutting down [site=0 / exitCode=1]
+20:17:46,219 [H00-periodic] (HStoreCoordinator.java:1604) FATAL - A fatal error caused this shutdown
+java.lang.Exception: Shutdown command received at H00
+	at edu.brown.hstore.HStoreSite.processSysProc(HStoreSite.java:2037)
+	at edu.brown.hstore.HStoreSite.invocationProcess(HStoreSite.java:1947)
+	at edu.brown.hstore.HStoreSite.invocationQueue(HStoreSite.java:1834)
+	at edu.brown.hstore.ClientInterface$ClientInputHandler.handleMessage(ClientInterface.java:458)
+	at org.voltdb.network.VoltPort.call(VoltPort.java:146)
+	at org.voltdb.network.VoltNetwork$3.run(VoltNetwork.java:545)
+	at org.voltdb.network.VoltNetwork$2.run(VoltNetwork.java:238)
+	at org.voltdb.network.VoltNetwork$1$1.run(VoltNetwork.java:202)
+20:17:46,227 [H00-periodic] (HStoreSite.java:1809) INFO  - Completed shutdown process at H00 [instanceId=1443557450054]
+BUILD SUCCESSFUL
+Total time: 7 minutes 4 seconds
