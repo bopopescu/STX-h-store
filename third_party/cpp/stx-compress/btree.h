@@ -3776,7 +3776,6 @@ public:
 
       //if (find_static(key) != hybrid_end()) {
       if (!find_static(key).isEnd()) {
-	std::cout << "insert fail: key already exist-------\n";
 	return std::pair<iterator, bool>(end(), false);
       }
       return insert_start(key, data);
