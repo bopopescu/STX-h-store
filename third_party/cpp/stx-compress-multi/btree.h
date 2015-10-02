@@ -29,8 +29,8 @@
  * DEALINGS IN THE SOFTWARE.
  ******************************************************************************/
 
-#ifndef STX_STX_HYBRID_COMPRESS_BTREE_H_HEADER
-#define STX_STX_HYBRID_COMPRESS_BTREE_H_HEADER
+#ifndef STX_STX_HYBRID_COMPRESS_MULTI_BTREE_H_HEADER
+#define STX_STX_HYBRID_COMPRESS_MULTI_BTREE_H_HEADER
 
 /**
  * \file include/stx/btree.h
@@ -58,7 +58,6 @@
 #define BTREE_MERGE_RATIO 10
 
 #define USE_BLOOM_FILTER 1
-#define USE_BLOOM_FILTER_STATIC 0
 #define LITTLEENDIAN 1
 #define BITS_PER_KEY 8
 #define K 2
@@ -99,7 +98,7 @@
 #endif
 
 /// STX - Some Template Extensions namespace
-namespace stx_hybrid_compress {
+namespace stx_hybrid_compress_multi {
 
 /** Generates default traits for a B+ tree used as a set. It estimates leaf and
  * inner node sizes by assuming a cache line size of 256 bytes. */
@@ -150,22 +149,22 @@ public:
 
     /// Number of slots in each leaf of the tree. Estimated so that each node
     /// has a size of about 256 bytes.
-    //static const int leafslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(_Data))); //page size = 256
-    static const int leafslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(_Data))); //page size = 256
+    static const int leafslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(_Data))); //page size = 256
+    //static const int leafslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(_Data))); //page size = 256
     //static const int leafslots = BTREE_MAX(8, 4096 / (sizeof(_Key) + sizeof(_Data))); //page size = 4096
 
     /// Number of slots in each inner node of the tree. Estimated so that each node
     /// has a size of about 256 bytes.
-    //static const int innerslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(void*))); //page size = 256
-    static const int innerslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(void*))); //page size = 256
+    static const int innerslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(void*))); //page size = 256
+    //static const int innerslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(void*))); //page size = 256
     //static const int innerslots = BTREE_MAX(8, 4096 / (sizeof(_Key) + sizeof(void*))); //page size = 4096
 
     /// As of stx-btree-0.9, the code does linear search in find_lower() and
     /// find_upper() instead of binary_search, unless the node size is larger
     /// than this threshold. See notes at
     /// http://panthema.net/2013/0504-STX-B+Tree-Binary-vs-Linear-Search
-    //static const size_t binsearch_threshold = 256; //page size = 256
-    static const size_t binsearch_threshold = 512; //page size = 256
+    static const size_t binsearch_threshold = 256; //page size = 256
+    //static const size_t binsearch_threshold = 512; //page size = 256
     //static const size_t binsearch_threshold = 4096; //page size = 4096
 };
 
@@ -1501,14 +1500,6 @@ public:
 	  : currnode_compressed(l_c), currslot(s)
         {
 	  buffer = lb;
-	  /*
-	  if (l_c != NULL) {
-	    std::string str;
-	    snappy::Uncompress(l_c->data, l_c->size, &str);
-	    memcpy(&currnode, str.data(), str.size());
-	  }
-	  */
-
 	  if (l_c != NULL) {
 	    if (l_c->buffer_idx == INVALID_BUFFER_IDX) {
 	      std::string str;
@@ -1521,7 +1512,6 @@ public:
 	      memcpy(&currnode, ln, sizeof(leaf_node));
 	    }
 	  }
-
 	}
 
 	inline static_iterator(typename btree::compressed_node* l_c, typename btree::leaf_node* l, unsigned short s)
@@ -1550,14 +1540,14 @@ public:
 	  if (currnode_compressed != NULL) {
 	    return (currnode_compressed->prevleaf == NULL) && (currslot == 0);
 	  }
-	  return false;
+	  return true;
 	}
 
 	inline bool isEnd() {
 	  if (currnode_compressed != NULL) {
 	    return (currnode_compressed->nextleaf == NULL) && (currslot == currnode.slotuse);
 	  }
-	  return false;
+	  return true;
 	}
 
         /// Dereference the iterator, this is not a value_type& because key and
@@ -1596,12 +1586,6 @@ public:
             }
             else if (currnode_compressed->nextleaf != NULL) {
 	      currnode_compressed = currnode_compressed->nextleaf;
-	      /*
-	      std::string str;
-	      snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
-	      memcpy(&currnode, str.data(), str.size());
-	      */
-
 	      if (currnode_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		std::string str;
 		snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
@@ -1629,12 +1613,6 @@ public:
             }
             else if (currnode_compressed->prevleaf != NULL) {
 	      currnode_compressed = currnode_compressed->prevleaf;
-	      /*
-	      std::string str;
-	      snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
-	      memcpy(&currnode, str.data(), str.size());
-	      */
-
 	      if (currnode_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		std::string str;
 		snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
@@ -1793,12 +1771,6 @@ public:
         { 
 	  buffer = lb;
 	  if (l_static_compressed != NULL) {
-	    /*
-	    std::string str;
-	    snappy::Uncompress(l_static_compressed->data, l_static_compressed->size, &str);
-	    memcpy(&currnode_static, str.data(), str.size());
-	    */
-
 	    if (l_static_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	      std::string str;
 	      snappy::Uncompress(l_static_compressed->data, l_static_compressed->size, &str);
@@ -1809,7 +1781,6 @@ public:
 	      leaf_node* ln = buffer->get(l_static_compressed->buffer_idx);
 	      memcpy(&currnode_static, ln, sizeof(leaf_node));
 	    }
-
 	  }
 	}
 
@@ -1840,9 +1811,26 @@ public:
           return currslot_static;
         }
 
+	inline unsigned short get_currtree() {
+	  return currtree;
+	}
+
         inline leaf_buffer* get_buffer() {
           return buffer;
         }
+
+	inline void print() {
+	  std::cout << "==============================================\n";
+	  if (currnode != NULL) {
+	    std::cout << "currnode slotuse = " << currnode->slotuse << "\n";
+	    std::cout << "currslot = " << currslot << "\n";
+	  }
+	  if (currnode_static_compressed != NULL) {
+	    std::cout << "currnode_static_compressed slotuse = " << currnode_static_compressed->slotuse << "\n";
+	    std::cout << "currslot_static = " << currslot_static << "\n";
+	  }
+	  std::cout << "currtree = " << currtree << "\n";
+	}
 
 	inline bool isComplete() {
 	  return (currnode != NULL) && (currnode_static_compressed != NULL);
@@ -1928,12 +1916,6 @@ public:
 	      }
 	      else if (currnode_static_compressed->nextleaf != NULL) {
 		currnode_static_compressed = currnode_static_compressed->nextleaf;
-		/*
-		std::string str;
-		snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
-		memcpy(&currnode_static, str.data(), str.size());
-		*/
-
 		if (currnode_static_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		  std::string str;
 		  snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
@@ -1993,12 +1975,6 @@ public:
 	      }
 	      else if (currnode_static_compressed->prevleaf != NULL) {
 		currnode_static_compressed = currnode_static_compressed->prevleaf;
-		/*
-		std::string str;
-		snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
-		memcpy(&currnode_static, str.data(), str.size());
-		*/
-
 		if (currnode_static_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		  std::string str;
 		  snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
@@ -2165,7 +2141,7 @@ private:
     /// Other small statistics about the B+ tree
     tree_stats m_stats;
     tree_stats m_stats_static; //h
-    uint32_t m_compressed_data_size; //huanchen-comrpess
+    uint64_t m_compressed_data_size; //huanchen-comrpess
 
     /// Key comparison object. More comparison functions are generated from
     /// this < relation.
@@ -2175,9 +2151,7 @@ private:
     allocator_type m_allocator;
 
     char* bloom_filter;
-    char* bloom_filter_static;
     size_t bits;
-    size_t bits_static;
 
     //huanchen-stats
     uint32_t leaf_size;
@@ -2204,13 +2178,9 @@ public:
           m_leaf_buffer(NULL)
     {
       bits = 0;
-      bits_static = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
 	bloom_filter = CreateEmptyFilter(BTREE_MERGE_THRESHOLD);
-
-      if (USE_BLOOM_FILTER_STATIC)
-	bloom_filter_static = CreateEmptyFilter_static(BTREE_MERGE_THRESHOLD);
 
       leaf_size = 0;
       leaf_static_size = 0;
@@ -2223,6 +2193,7 @@ public:
       inner_dealloc_size = 0;
       inner_static_dealloc_size = 0;
       compressed_dealloc_size = 0;
+
     }
 
     /// Constructor initializing an empty B+ tree with a special key
@@ -2234,13 +2205,9 @@ public:
           m_leaf_buffer(NULL), m_key_less(kcf), m_allocator(alloc)
     {
       bits = 0;
-      bits_static = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
 	bloom_filter = CreateEmptyFilter(BTREE_MERGE_THRESHOLD);
-
-      if (USE_BLOOM_FILTER_STATIC)
-	bloom_filter_static = CreateEmptyFilter_static(BTREE_MERGE_THRESHOLD);
 
       leaf_size = 0;
       leaf_static_size = 0;
@@ -2253,6 +2220,7 @@ public:
       inner_dealloc_size = 0;
       inner_static_dealloc_size = 0;
       compressed_dealloc_size = 0;
+
     }
 
     /// Constructor initializing a B+ tree with the range [first,last). The
@@ -2266,13 +2234,9 @@ public:
           m_leaf_buffer(NULL)
     {
       bits = 0;
-      bits_static = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
 	bloom_filter = CreateEmptyFilter(BTREE_MERGE_THRESHOLD);
-
-      if (USE_BLOOM_FILTER_STATIC)
-	bloom_filter_static = CreateEmptyFilter_static(BTREE_MERGE_THRESHOLD);
 
       leaf_size = 0;
       leaf_static_size = 0;
@@ -2300,13 +2264,9 @@ public:
           m_leaf_buffer(NULL), m_key_less(kcf), m_allocator(alloc)
     {
       bits = 0;
-      bits_static = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
 	bloom_filter = CreateEmptyFilter(BTREE_MERGE_THRESHOLD);
-
-      if (USE_BLOOM_FILTER_STATIC)
-	bloom_filter_static = CreateEmptyFilter_static(BTREE_MERGE_THRESHOLD);
 
       leaf_size = 0;
       leaf_static_size = 0;
@@ -2330,9 +2290,6 @@ public:
       //bloom filter
       if (USE_BLOOM_FILTER)
 	free(bloom_filter);
-
-      if (USE_BLOOM_FILTER_STATIC)
-	free(bloom_filter_static);
 
       if (m_leaf_buffer) {
 	m_leaf_buffer->destroy();
@@ -2479,16 +2436,6 @@ private:
 
     //huanchen
     /// Allocate and initialize a static leaf node
-/*
-    inline leaf_node * allocate_leaf_static()
-    {
-        leaf_node* n = new (leaf_node_allocator().allocate(1))
-                       leaf_node();
-	leaf_static_size += sizeof(leaf_node);
-        m_stats_static.leaves++;
-        return n;
-    }
-*/
     inline leaf_node * allocate_leaf_static()
     {
         void *ptr = leaf_node_allocator().allocate(1);
@@ -2970,7 +2917,7 @@ public:
     /// Return the number of key/data pairs in the B+ tree
     inline size_type size() const
     {
-        return m_stats.itemcount + m_stats_static.itemcount;
+        return m_stats.itemcount;
     }
 
     //huanchen
@@ -3032,11 +2979,11 @@ public:
 
     inline const size_t get_bloom_filter_size() const
     {
-        return bits/8 + bits_static/8;
+        return bits/8;
     }
 
     //huanchen-compress
-    inline const uint32_t get_compressed_data_size() const
+    inline const uint64_t get_compressed_data_size() const
     {
       return m_compressed_data_size;
     }
@@ -3107,11 +3054,6 @@ public:
         const node* n = m_root;
         if (!n) return false;
 
-	if (USE_BLOOM_FILTER) {
-	  if (!KeyMayMatch(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter))
-	    return false;
-	}
-
         while (!n->isleafnode())
         {
             const inner_node* inner = static_cast<const inner_node*>(n);
@@ -3132,11 +3074,6 @@ public:
         const node* n = m_root_static;
         if (!n) return false;
 
-	if (USE_BLOOM_FILTER_STATIC) {
-	  if (!KeyMayMatch_static(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter_static))
-	    return false;
-	}
-
         while (!n->isleafnode())
         {
             const inner_node* inner = static_cast<const inner_node*>(n);
@@ -3149,11 +3086,6 @@ public:
 	
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3169,6 +3101,11 @@ public:
 
     bool exists_hybrid(const key_type& key) const
     {
+      if (USE_BLOOM_FILTER) {
+	if ((m_stats.itemcount == 0) || !KeyMayMatch(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter)) {
+	  return exists_static(key);
+	}
+      }
       return exists(key) || exists_static(key);
     }
 
@@ -3178,12 +3115,6 @@ public:
     {
         node* n = m_root;
         if (!n) return end();
-
-	if (USE_BLOOM_FILTER) {
-	  if (!KeyMayMatch(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter)) {
-	    return end();
-	  }
-	}
 
         while (!n->isleafnode())
         {
@@ -3206,12 +3137,6 @@ public:
         node* n = m_root_static;
         if (!n) return hybrid_end();
 
-	if (USE_BLOOM_FILTER_STATIC) {
-	  if (!KeyMayMatch_static(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter_static)) {
-	    return hybrid_end();
-	  }
-	}
-
         while (!n->isleafnode())
         {
             const inner_node* inner = static_cast<const inner_node*>(n);
@@ -3221,40 +3146,32 @@ public:
 
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
-	const leaf_node* leaf_buffer;
 	std::string str;
-
-	//snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	//const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
 	  m_leaf_buffer->insert(leaf_compressed, leaf);
 	}
 	else {
-	  /*
-	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	  leaf = reinterpret_cast<const leaf_node*>(str.data());
-	  leaf_buffer = m_leaf_buffer->get(leaf_compressed->buffer_idx);
-	  for (int i = 0; i < leaf->slotuse; i++) {
-	    if (!key_equal(leaf->slotkey[i], leaf_buffer->slotkey[i])) {
-	      std::cout << i << "\n";
-	    }
-	  }
-	  */
 	  leaf = m_leaf_buffer->get(leaf_compressed->buffer_idx);
 	}
 
         int slot = find_lower(leaf, key);
 
         return (slot < leaf->slotuse && key_equal(key, leaf->slotkey[slot]) && (leaf->slotdata[slot] != 0))
-      ? hybrid_iterator(NULL, 0, leaf_compressed, leaf, slot, 1, m_leaf_buffer, m_key_less) : hybrid_end();
+	? hybrid_iterator(NULL, 0, leaf_compressed, leaf, slot, 1, m_leaf_buffer, m_key_less) : hybrid_end();
     }
 
     hybrid_iterator find_hybrid(const key_type& key)
     {
       iterator key_iter;
+      //bloom filter
+      if (USE_BLOOM_FILTER) {
+	if ((m_stats.itemcount == 0) || !KeyMayMatch(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter)) {
+	  return find_static(key);
+	}
+      }
+
       key_iter = find(key);
       if (key_iter == end()) {
         return find_static(key);
@@ -3334,11 +3251,6 @@ public:
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3358,11 +3270,6 @@ public:
             {
                 leaf_compressed = leaf_compressed->nextleaf;
 		if (leaf_compressed != NULL) {
-		  /*
-		  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-		  leaf = reinterpret_cast<const leaf_node*>(str.data());
-		  */
-
 		  std::string str;
 		  if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		    snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
@@ -3372,7 +3279,6 @@ public:
 		  else {
 		    leaf = m_leaf_buffer->get(leaf_compressed->buffer_idx);
 		  }
-
 		}
                 slot = 0;
             }
@@ -3424,11 +3330,6 @@ public:
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3528,11 +3429,6 @@ public:
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3543,11 +3439,19 @@ public:
 	}
 
         int slot = find_upper(leaf, key);
+	if ((slot >= leaf->slotuse) && (leaf_compressed != m_tailleaf_static))
+	  slot = leaf->slotuse - 1;
 	static_iterator iter = static_iterator(leaf_compressed, slot, m_leaf_buffer);
+	//while (!iter.isEnd() && (iter.key() == key)) {
+	while (!iter.isEnd() && (key_equal(iter.key(), key))) {
+	  iter++;
+	}
+	/*
 	if (!iter.isEnd()) {
 	  if (leaf->slotdata[slot] == 0)
 	    iter++;
 	}
+	*/
         return iter;
     }
 
@@ -3604,6 +3508,11 @@ public:
     inline std::pair<static_iterator, static_iterator> equal_range_static(const key_type& key)
     {
         return std::pair<static_iterator, static_iterator>(lower_bound_static(key), upper_bound_static(key));
+    }
+
+    inline std::pair<hybrid_iterator, hybrid_iterator> equal_range_hybrid(const key_type& key)
+    {
+        return std::pair<hybrid_iterator, hybrid_iterator>(lower_bound_hybrid(key), upper_bound_hybrid(key));
     }
 
     /// Searches the B+ tree and returns both lower_bound() and upper_bound().
@@ -3769,26 +3678,7 @@ public:
     /// duplicate keys, then the insert may fail if it is already present.
     inline std::pair<iterator, bool> insert2(const key_type& key, const data_type& data)
     {
-      //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
-        merge();
-      }
-
-      //if (find_static(key) != hybrid_end()) {
-      if (!find_static(key).isEnd()) {
-	return std::pair<iterator, bool>(end(), false);
-      }
-      return insert_start(key, data);
-    }
-
-    inline std::pair<iterator, bool> update2(const key_type& key, const data_type& data)
-    {
-      //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
-        merge();
-      }
-
-      return insert_start(key, data);
+        return insert_start(key, data);
     }
 
     /// Attempt to insert a key/data pair into the B+ tree. The iterator hint
@@ -3826,6 +3716,11 @@ private:
     /// splits. Returns true if the item was inserted
     std::pair<iterator, bool> insert_start(const key_type& key, const data_type& value)
     {
+      //merge
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+        merge();
+      }
+
         node* newchild = NULL;
         key_type newkey = key_type();
 
@@ -4281,11 +4176,6 @@ public:
     /// key.
     bool erase_one(const key_type& key)
     {
-      if (USE_BLOOM_FILTER) {
-	if ((m_stats.itemcount == 0) || !KeyMayMatch(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter)) {
-	  return false;
-	}
-      }
         BTREE_PRINT("btree::erase_one(" << key << ") on btree size " << size());
 
         if (selfverify) verify();
@@ -4307,11 +4197,6 @@ public:
 
     //huanchen
     bool erase_one_static(const key_type& key) {
-      if (USE_BLOOM_FILTER_STATIC) {
-	if ((m_stats_static.itemcount == 0) || !KeyMayMatch_static(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter_static)) {
-	  return false;
-	}
-      }
       hybrid_iterator iter = find_static(key);
       if (iter.isEnd()) {
 	return false;
@@ -4327,12 +4212,23 @@ public:
       memcpy(iter.get_currnode_static_compressed()->data, str.data(), str.size());
       m_compressed_data_size += iter.get_currnode_static_compressed()->size;
 
+      iter.get_currnode_static_compressed()->buffer_idx = INVALID_BUFFER_IDX;
       --m_stats_static.itemcount;
       return true;
     }
 
     bool erase_one_hybrid(const key_type& key) {
-      return erase_one(key) || erase_one_static(key);
+      if (USE_BLOOM_FILTER) {
+	if ((m_stats.itemcount == 0) || !KeyMayMatch(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter)) {
+	  return erase_one_static(key);
+	}
+      }
+
+      bool erase_success = erase_one(key);
+      if (!erase_success) {
+	erase_success = erase_one_static(key);
+      }
+      return erase_success;
     }
 
     /// Erases all the key/data pairs associated with the given key. This is
@@ -4368,6 +4264,29 @@ public:
         if (debug) print(std::cout);
 #endif
         if (selfverify) verify();
+    }
+
+    void erase_static(hybrid_iterator iter) {
+      iter.get_currnode_static()->slotdata[iter.get_currslot_static()] = (data_type)0;
+      
+      std::string str;
+      snappy::Compress(reinterpret_cast<const char*>(iter.get_currnode_static()), sizeof(leaf_node), &str);
+      m_compressed_data_size -= iter.get_currnode_static_compressed()->size;
+      iter.get_currnode_static_compressed()->size = str.size();
+      free(iter.get_currnode_static_compressed()->data);
+      iter.get_currnode_static_compressed()->data = (char*)malloc(str.size());
+      memcpy(iter.get_currnode_static_compressed()->data, str.data(), str.size());
+      iter.get_currnode_static_compressed()->buffer_idx = 65535;
+      m_compressed_data_size += iter.get_currnode_static_compressed()->size;
+    }
+
+    void erase_hybrid(hybrid_iterator iter) {
+      if (iter.get_currtree() == 0) {
+	erase(iterator(iter.get_currnode(), iter.get_currslot()));
+      }
+      else if (iter.get_currtree() == 1) {
+	erase_static(iter);
+      }
     }
 
 #ifdef BTREE_TODO
@@ -5713,11 +5632,6 @@ private:
     //huanchen===================================================================================
 public:
     void merge() {
-      //bloom filter
-      if (USE_BLOOM_FILTER_STATIC) {
-	free(bloom_filter_static);
-	bloom_filter_static = CreateEmptyFilter_static(m_stats_static.itemcount + m_stats.itemcount);
-      }
       leaf_node *ln = m_headleaf; //dynamic leaf cursor
       compressed_node *ln_static = m_headleaf_static; //static leaf cursor
       int curslot = 0; //static leaf slot cursor
@@ -5757,8 +5671,6 @@ public:
             new_ln->slotdata[curslot] = ln->slotdata[slot];
             new_ln->slotuse++;
 	    ln_static->slotuse++;
-	    if (USE_BLOOM_FILTER_STATIC)
-	      InsertToFilter_static(reinterpret_cast<const char*>(&(new_ln->slotkey[curslot])), sizeof(key_type), bloom_filter_static);
             curslot++;
             m_stats_static.itemcount++;
           } //END for
@@ -5829,17 +5741,16 @@ public:
 	    if (ln_static_leaf->slotdata[slot_static] == (data_type)0) {
 	      slot_static++;
 	    }
-            else if (key_equal(ln->slotkey[slot], ln_static_leaf->slotkey[slot_static])) {
-	      slot_static++;
-	    }
-            else if (key_less(ln->slotkey[slot], ln_static_leaf->slotkey[slot_static])) {
+            //else if (key_equal(ln->slotkey[slot], ln_static_leaf->slotkey[slot_static])) {
+	    //slot_static++;
+	    //}
+            //else if (key_less(ln->slotkey[slot], ln_static_leaf->slotkey[slot_static])) {
+	    else if (key_lessequal(ln->slotkey[slot], ln_static_leaf->slotkey[slot_static])) {
               ln_new_leaf->slotkey[slot_new] = ln->slotkey[slot];
               ln_new_leaf->slotdata[slot_new] = ln->slotdata[slot];
               slot++;
 	      ln_new->slotuse++;
 	      ln_new_leaf->slotuse++;
-	      if (USE_BLOOM_FILTER_STATIC)
-		InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new_leaf->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
 	      slot_new++;
 	      m_stats_static.itemcount++;
             }
@@ -5849,8 +5760,6 @@ public:
               slot_static++;
 	      ln_new->slotuse++;
 	      ln_new_leaf->slotuse++;
-	      if (USE_BLOOM_FILTER_STATIC)
-		InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new_leaf->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
 	      slot_new++;
 	      m_stats_static.itemcount++;
             }
@@ -5895,8 +5804,6 @@ public:
             ln_new_leaf->slotdata[slot_new] = ln->slotdata[slot];
             ln_new->slotuse++;
             ln_new_leaf->slotuse++;
-	    if (USE_BLOOM_FILTER_STATIC)
-	      InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new_leaf->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
             slot_new++;
             slot++;
             m_stats_static.itemcount++;
@@ -5936,8 +5843,6 @@ public:
 
             ln_new->slotuse++;
             ln_new_leaf->slotuse++;
-	    if (USE_BLOOM_FILTER_STATIC)
-	      InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new_leaf->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
             slot_new++;
             slot_static++;
             m_stats_static.itemcount++;
@@ -6134,31 +6039,11 @@ public:
     return array;
   }
 
-  char* CreateEmptyFilter_static(int n) {
-    bits_static = n * BITS_PER_KEY;
-    size_t bytes = (bits_static + 7) / 8;
-    bits_static = bytes * 8;
-
-    char* array = (char*)malloc(bytes);
-    memset((void*)array, '\0', bytes);
-    return array;
-  }
-
   void InsertToFilter(const char* data, size_t n, char* filter) {
     uint32_t h = BloomHash(data, n);
     const uint32_t delta = (h >> 17) | (h << 15);
     for (size_t j = 0; j < K; j++) {
       const uint32_t bitpos = h% bits;
-      filter[bitpos/8] |= (1 << (bitpos % 8));
-      h += delta;
-    }
-  }
-
-  void InsertToFilter_static(const char* data, size_t n, char* filter) {
-    uint32_t h = BloomHash(data, n);
-    const uint32_t delta = (h >> 17) | (h << 15);
-    for (size_t j = 0; j < K; j++) {
-      const uint32_t bitpos = h% bits_static;
       filter[bitpos/8] |= (1 << (bitpos % 8));
       h += delta;
     }
@@ -6176,22 +6061,10 @@ public:
     return true;
   }
 
-  bool KeyMayMatch_static(const char* data, size_t n, char* filter) {
-    uint32_t h = BloomHash(data, n);
-    const uint32_t delta = (h >> 17) | (h << 15);
-    for (size_t j = 0; j < K; j++) {
-      const uint32_t bitpos = h % bits_static;
-      if ((filter[bitpos/8] & (1 << (bitpos % 8))) == 0)
-	return false;
-      h += delta;
-    }
-    return true;
-  }
-
 };
 
-} // namespace stx_hybrid_compress
+} // namespace stx_hybrid_compress_multi
 
-#endif // !STX_STX_HYBRID_COMPRESS_BTREE_H_HEADER
+#endif // !STX_STX_HYBRID_COMPRESS_MULTI_BTREE_H_HEADER
 
 /******************************************************************************/

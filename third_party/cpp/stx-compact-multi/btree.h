@@ -2834,7 +2834,6 @@ public:
       else if (iter == end()) {
         return hybrid_iterator(m_tailleaf, m_tailleaf ? m_tailleaf->slotuse : 0, iter_static.get_currnode_static(), iter_static.get_currslot_static(), iter_static.get_currdata_pos_static(), 1, m_key_less);
       }
-      //else if (iter_static == hybrid_end()) {
       else if (iter_static.isEnd()) {
         return hybrid_iterator(iter.get_currnode(), iter.get_currslot(), m_tailleaf_static, m_tailleaf_static ? m_tailleaf_static->slotuse : 0, 0, m_key_less);
       }

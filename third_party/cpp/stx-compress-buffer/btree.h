@@ -1812,6 +1812,10 @@ public:
           return currslot_static;
         }
 
+	inline unsigned short get_currtree() {
+	  return currtree;
+	}
+
         inline leaf_buffer* get_buffer() {
           return buffer;
         }
@@ -2125,7 +2129,7 @@ private:
     /// Other small statistics about the B+ tree
     tree_stats m_stats;
     tree_stats m_stats_static; //h
-    uint32_t m_compressed_data_size; //huanchen-comrpess
+    uint64_t m_compressed_data_size; //huanchen-comrpess
 
     /// Key comparison object. More comparison functions are generated from
     /// this < relation.
@@ -3188,7 +3192,7 @@ public:
 
         int slot = find_lower(leaf, key);
 
-        return (slot < leaf->slotuse && key_equal(key, leaf->slotkey[slot]) && (leaf->slotdata[slot] != 0))
+        return (slot < leaf->slotuse && key_equal(key, leaf->slotkey[slot]) && (leaf->slotdata[slot] != (data_type)0))
       ? hybrid_iterator(NULL, 0, leaf_compressed, leaf, slot, 1, m_leaf_buffer, m_key_less) : hybrid_end();
     }
 
@@ -4246,6 +4250,7 @@ public:
       memcpy(iter.get_currnode_static_compressed()->data, str.data(), str.size());
       m_compressed_data_size += iter.get_currnode_static_compressed()->size;
 
+      iter.get_currnode_static_compressed()->buffer_idx = INVALID_BUFFER_IDX;
       --m_stats_static.itemcount;
       return true;
     }

@@ -1501,14 +1501,6 @@ public:
 	  : currnode_compressed(l_c), currslot(s)
         {
 	  buffer = lb;
-	  /*
-	  if (l_c != NULL) {
-	    std::string str;
-	    snappy::Uncompress(l_c->data, l_c->size, &str);
-	    memcpy(&currnode, str.data(), str.size());
-	  }
-	  */
-
 	  if (l_c != NULL) {
 	    if (l_c->buffer_idx == INVALID_BUFFER_IDX) {
 	      std::string str;
@@ -1521,7 +1513,6 @@ public:
 	      memcpy(&currnode, ln, sizeof(leaf_node));
 	    }
 	  }
-
 	}
 
 	inline static_iterator(typename btree::compressed_node* l_c, typename btree::leaf_node* l, unsigned short s)
@@ -1596,12 +1587,6 @@ public:
             }
             else if (currnode_compressed->nextleaf != NULL) {
 	      currnode_compressed = currnode_compressed->nextleaf;
-	      /*
-	      std::string str;
-	      snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
-	      memcpy(&currnode, str.data(), str.size());
-	      */
-
 	      if (currnode_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		std::string str;
 		snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
@@ -1629,12 +1614,6 @@ public:
             }
             else if (currnode_compressed->prevleaf != NULL) {
 	      currnode_compressed = currnode_compressed->prevleaf;
-	      /*
-	      std::string str;
-	      snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
-	      memcpy(&currnode, str.data(), str.size());
-	      */
-
 	      if (currnode_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		std::string str;
 		snappy::Uncompress(currnode_compressed->data, currnode_compressed->size, &str);
@@ -1793,12 +1772,6 @@ public:
         { 
 	  buffer = lb;
 	  if (l_static_compressed != NULL) {
-	    /*
-	    std::string str;
-	    snappy::Uncompress(l_static_compressed->data, l_static_compressed->size, &str);
-	    memcpy(&currnode_static, str.data(), str.size());
-	    */
-
 	    if (l_static_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	      std::string str;
 	      snappy::Uncompress(l_static_compressed->data, l_static_compressed->size, &str);
@@ -1809,7 +1782,6 @@ public:
 	      leaf_node* ln = buffer->get(l_static_compressed->buffer_idx);
 	      memcpy(&currnode_static, ln, sizeof(leaf_node));
 	    }
-
 	  }
 	}
 
@@ -1928,12 +1900,6 @@ public:
 	      }
 	      else if (currnode_static_compressed->nextleaf != NULL) {
 		currnode_static_compressed = currnode_static_compressed->nextleaf;
-		/*
-		std::string str;
-		snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
-		memcpy(&currnode_static, str.data(), str.size());
-		*/
-
 		if (currnode_static_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		  std::string str;
 		  snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
@@ -1993,12 +1959,6 @@ public:
 	      }
 	      else if (currnode_static_compressed->prevleaf != NULL) {
 		currnode_static_compressed = currnode_static_compressed->prevleaf;
-		/*
-		std::string str;
-		snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
-		memcpy(&currnode_static, str.data(), str.size());
-		*/
-
 		if (currnode_static_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		  std::string str;
 		  snappy::Uncompress(currnode_static_compressed->data, currnode_static_compressed->size, &str);
@@ -3149,11 +3109,6 @@ public:
 	
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3221,28 +3176,13 @@ public:
 
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
-	const leaf_node* leaf_buffer;
 	std::string str;
-
-	//snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	//const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
 	  m_leaf_buffer->insert(leaf_compressed, leaf);
 	}
 	else {
-	  /*
-	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	  leaf = reinterpret_cast<const leaf_node*>(str.data());
-	  leaf_buffer = m_leaf_buffer->get(leaf_compressed->buffer_idx);
-	  for (int i = 0; i < leaf->slotuse; i++) {
-	    if (!key_equal(leaf->slotkey[i], leaf_buffer->slotkey[i])) {
-	      std::cout << i << "\n";
-	    }
-	  }
-	  */
 	  leaf = m_leaf_buffer->get(leaf_compressed->buffer_idx);
 	}
 
@@ -3334,11 +3274,6 @@ public:
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3358,11 +3293,6 @@ public:
             {
                 leaf_compressed = leaf_compressed->nextleaf;
 		if (leaf_compressed != NULL) {
-		  /*
-		  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-		  leaf = reinterpret_cast<const leaf_node*>(str.data());
-		  */
-
 		  std::string str;
 		  if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 		    snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
@@ -3372,7 +3302,6 @@ public:
 		  else {
 		    leaf = m_leaf_buffer->get(leaf_compressed->buffer_idx);
 		  }
-
 		}
                 slot = 0;
             }
@@ -3424,11 +3353,6 @@ public:
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -3528,11 +3452,6 @@ public:
 	compressed_node *leaf_compressed = static_cast<compressed_node*>(n);
 	const leaf_node* leaf;
 	std::string str;
-	/*
-	snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
-	const leaf_node* leaf = reinterpret_cast<const leaf_node*>(str.data());
-	*/
-
 	if (leaf_compressed->buffer_idx == INVALID_BUFFER_IDX) {
 	  snappy::Uncompress(leaf_compressed->data, leaf_compressed->size, &str);
 	  leaf = reinterpret_cast<const leaf_node*>(str.data());
@@ -4329,7 +4248,6 @@ public:
 
       iter.get_currnode_static_compressed()->buffer_idx = INVALID_BUFFER_IDX;
       --m_stats_static.itemcount;
-
       return true;
     }
 

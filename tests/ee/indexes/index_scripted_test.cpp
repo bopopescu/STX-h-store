@@ -97,8 +97,8 @@ int line = 0;
 
 bool commandIS(voltdb::TableTuple &key)
 {
-    //cout << "running is" << endl;
-    //cout << " candidate key : " << key.tupleLength() << " - " << key.debug("") << endl;
+  //cout << "running is" << endl;
+  //cout << " candidate key : " << key.tupleLength() << " - " << key.debug("") << endl;
     return currentIndex->addEntry(&key);
 }
 
@@ -111,13 +111,16 @@ bool commandIF(voltdb::TableTuple &key)
 
 bool commandLS(voltdb::TableTuple &key)
 {
-    //cout << "running ls" << endl;
-    //cout << " candidate key : " << key.tupleLength() << " - " << key.debug("") << endl;
+
+  //cout << "running ls" << endl;
+  //cout << " candidate key : " << key.tupleLength() << " - " << key.debug("") << endl;
+  //cout << "index size = " << currentIndex->getSize() << "\n";
     bool result = currentIndex->moveToKey(&key);
     if (!result) {
         cout << "ls FAIL(moveToKey()) key length: " << key.tupleLength() << endl << key.debug("") << endl;
         return false;
     }
+
     voltdb::TableTuple value = currentIndex->nextValueAtKey();
     if (value.isNullTuple()) {
         cout << "ls FAIL(isNullTuple()) key length: " << key.tupleLength() << endl << key.debug("") << endl;
@@ -128,6 +131,7 @@ bool commandLS(voltdb::TableTuple &key)
             << endl << " value length: " << value.tupleLength() << endl << value.debug("") << endl;
         return false;
     }
+
     return true;
 }
 
@@ -159,6 +163,7 @@ bool commandUF(voltdb::TableTuple &oldkey, voltdb::TableTuple &newkey)
 
 bool commandDS(voltdb::TableTuple &key)
 {
+
     //cout << "running ds" << endl;
     //cout << " candidate key : " << key.tupleLength() << " - " << key.debug("") << endl;
     return currentIndex->deleteEntry(&key);
@@ -287,7 +292,7 @@ void runTest()
             else if (command.op == kInsertFailure)
                 result = commandIF(*command.key);
             else if (command.op == kLookupSuccess)
-                result = commandLS(*command.key);
+	        result = commandLS(*command.key);
             else if (command.op == kLookupFailure)
                 result = commandLF(*command.key);
             else if (command.op == kUpdateSuccess)
@@ -295,13 +300,14 @@ void runTest()
             else if (command.op == kUpdateFailure)
                 result = commandUF(*command.key, *command.key2);
             else if (command.op == kDeleteSuccess)
-                result = commandDS(*command.key);
+	      result = commandDS(*command.key);
             else if (command.op == kDeleteFailure)
-                result = commandDF(*command.key);
+	      result = commandDF(*command.key);
             else {
                 cerr << "Unexpected command when running test." << endl;
                 exit(-1);
             }
+
             if (result) ++successes;
             else {
                 cout << "(" << successes << "/" << failures << ") new FAILURE: " << command.op << endl;
