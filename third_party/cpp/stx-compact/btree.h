@@ -146,22 +146,22 @@ public:
 
     /// Number of slots in each leaf of the tree. Estimated so that each node
     /// has a size of about 256 bytes.
-    static const int leafslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(_Data)));
-    //static const int leafslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(_Data)));
+    //static const int leafslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(_Data)));
+    static const int leafslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(_Data)));
     //static const int leafslots = BTREE_MAX(8, 4096 / (sizeof(_Key) + sizeof(_Data)));
 
     /// Number of slots in each inner node of the tree. Estimated so that each node
     /// has a size of about 256 bytes.
-    static const int innerslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(void*)));
-    //static const int innerslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(void*)));
+    //static const int innerslots = BTREE_MAX(8, 256 / (sizeof(_Key) + sizeof(void*)));
+    static const int innerslots = BTREE_MAX(8, 512 / (sizeof(_Key) + sizeof(void*)));
     //static const int innerslots = BTREE_MAX(8, 4096 / (sizeof(_Key) + sizeof(void*)));
 
     /// As of stx-btree-0.9, the code does linear search in find_lower() and
     /// find_upper() instead of binary_search, unless the node size is larger
     /// than this threshold. See notes at
     /// http://panthema.net/2013/0504-STX-B+Tree-Binary-vs-Linear-Search
-    static const size_t binsearch_threshold = 256;
-    //static const size_t binsearch_threshold = 512;
+    //static const size_t binsearch_threshold = 256;
+    static const size_t binsearch_threshold = 512;
     //static const size_t binsearch_threshold = 4096;
 };
 
