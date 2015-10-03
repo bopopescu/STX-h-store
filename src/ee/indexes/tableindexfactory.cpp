@@ -117,13 +117,17 @@ namespace voltdb {
         
         if ((ints_only) && (type == HASH_TABLE_INDEX) && (unique)) {
             if (keySize <= sizeof(uint64_t)) {
-                return new HashTableUniqueIndex<IntsKey<1>, IntsHasher<1>, IntsEqualityChecker<1> >(schemeCopy);
+	      //return new HashTableUniqueIndex<IntsKey<1>, IntsHasher<1>, IntsEqualityChecker<1> >(schemeCopy);
+	      return new BinaryTreeUniqueIndex<IntsKey<1>, IntsComparator<1>, IntsEqualityChecker<1> >(schemeCopy);
             } else if (keySize <= sizeof(int64_t) * 2) {
-                return new HashTableUniqueIndex<IntsKey<2>, IntsHasher<2>, IntsEqualityChecker<2> >(schemeCopy);
+	      //return new HashTableUniqueIndex<IntsKey<2>, IntsHasher<2>, IntsEqualityChecker<2> >(schemeCopy);
+	      return new BinaryTreeUniqueIndex<IntsKey<2>, IntsComparator<2>, IntsEqualityChecker<2> >(schemeCopy);
             } else if (keySize <= sizeof(int64_t) * 3) {
-                return new HashTableUniqueIndex<IntsKey<3>, IntsHasher<3>, IntsEqualityChecker<3> >(schemeCopy);
+	      //return new HashTableUniqueIndex<IntsKey<3>, IntsHasher<3>, IntsEqualityChecker<3> >(schemeCopy);
+	      return new BinaryTreeUniqueIndex<IntsKey<3>, IntsComparator<3>, IntsEqualityChecker<3> >(schemeCopy);
             } else if (keySize <= sizeof(int64_t) * 4) {
-                return new HashTableUniqueIndex<IntsKey<4>, IntsHasher<4>, IntsEqualityChecker<4> >(schemeCopy);
+	      //return new HashTableUniqueIndex<IntsKey<4>, IntsHasher<4>, IntsEqualityChecker<4> >(schemeCopy);
+	      return new BinaryTreeUniqueIndex<IntsKey<4>, IntsComparator<4>, IntsEqualityChecker<4> >(schemeCopy);
             } else {
                 throwFatalException( "We currently only support hash index on unique integer keys of size 32 bytes or smaller..." );
             }
@@ -131,13 +135,17 @@ namespace voltdb {
         
         if ((ints_only) && (type == HASH_TABLE_INDEX) && (!unique)) {
             if (keySize <= sizeof(uint64_t)) {
-                return new HashTableMultiMapIndex<IntsKey<1>, IntsHasher<1>, IntsEqualityChecker<1> >(schemeCopy);
+	      //return new HashTableMultiMapIndex<IntsKey<1>, IntsHasher<1>, IntsEqualityChecker<1> >(schemeCopy);
+	      return new BinaryTreeMultiMapIndex<IntsKey<1>, IntsComparator<1>, IntsEqualityChecker<1> >(schemeCopy);
             } else if (keySize <= sizeof(int64_t) * 2) {
-                return new HashTableMultiMapIndex<IntsKey<2>, IntsHasher<2>, IntsEqualityChecker<2> >(schemeCopy);
+	      //return new HashTableMultiMapIndex<IntsKey<2>, IntsHasher<2>, IntsEqualityChecker<2> >(schemeCopy);
+	      return new BinaryTreeMultiMapIndex<IntsKey<2>, IntsComparator<2>, IntsEqualityChecker<2> >(schemeCopy);
             } else if (keySize <= sizeof(int64_t) * 3) {
-                return new HashTableMultiMapIndex<IntsKey<3>, IntsHasher<3>, IntsEqualityChecker<3> >(schemeCopy);
+	      //return new HashTableMultiMapIndex<IntsKey<3>, IntsHasher<3>, IntsEqualityChecker<3> >(schemeCopy);
+	      return new BinaryTreeMultiMapIndex<IntsKey<3>, IntsComparator<3>, IntsEqualityChecker<3> >(schemeCopy);
             } else if (keySize <= sizeof(int64_t) * 4) {
-                return new HashTableMultiMapIndex<IntsKey<4>, IntsHasher<4>, IntsEqualityChecker<4> >(schemeCopy);
+	      //return new HashTableMultiMapIndex<IntsKey<4>, IntsHasher<4>, IntsEqualityChecker<4> >(schemeCopy);
+	      return new BinaryTreeMultiMapIndex<IntsKey<4>, IntsComparator<4>, IntsEqualityChecker<4> >(schemeCopy);
             } else {
                 throwFatalException( "We currently only support hash index on non-unique integer keys of size 32 bytes of smaller..." );
             }
