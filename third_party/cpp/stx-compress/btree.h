@@ -55,7 +55,8 @@
 
 #define BTREE_MERGE 1
 #define BTREE_MERGE_THRESHOLD 100
-#define BTREE_MERGE_RATIO 10
+#define BTREE_MERGE_RATIO 5
+#define RANDOM_FACTOR 5
 
 #define USE_BLOOM_FILTER 1
 #define USE_BLOOM_FILTER_STATIC 0
@@ -1812,6 +1813,10 @@ public:
           return currslot_static;
         }
 
+	inline unsigned short get_currtree() {
+	  return currtree;
+	}
+
         inline leaf_buffer* get_buffer() {
           return buffer;
         }
@@ -2125,7 +2130,7 @@ private:
     /// Other small statistics about the B+ tree
     tree_stats m_stats;
     tree_stats m_stats_static; //h
-    uint32_t m_compressed_data_size; //huanchen-comrpess
+    uint64_t m_compressed_data_size; //huanchen-comrpess
 
     /// Key comparison object. More comparison functions are generated from
     /// this < relation.
@@ -2138,6 +2143,8 @@ private:
     char* bloom_filter_static;
     size_t bits;
     size_t bits_static;
+
+    double btree_merge_ratio;
 
     //huanchen-stats
     uint32_t leaf_size;
@@ -2163,6 +2170,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -2193,6 +2203,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL), m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -2225,6 +2238,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -2259,6 +2275,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL), m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -2996,7 +3015,7 @@ public:
     }
 
     //huanchen-compress
-    inline const uint32_t get_compressed_data_size() const
+    inline const uint64_t get_compressed_data_size() const
     {
       return m_compressed_data_size;
     }
@@ -3689,7 +3708,7 @@ public:
     inline std::pair<iterator, bool> insert2(const key_type& key, const data_type& data)
     {
       //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
       }
 
@@ -3703,7 +3722,7 @@ public:
     inline std::pair<iterator, bool> update2(const key_type& key, const data_type& data)
     {
       //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
       }
 
@@ -5976,7 +5995,7 @@ public:
       //bloom filter
       if (USE_BLOOM_FILTER) {
 	free(bloom_filter);
-	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/BTREE_MERGE_RATIO);
+	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/btree_merge_ratio);
       }
 
     } //END merge

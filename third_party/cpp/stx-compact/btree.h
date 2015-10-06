@@ -54,7 +54,8 @@
 
 #define BTREE_MERGE 1
 #define BTREE_MERGE_THRESHOLD 100
-#define BTREE_MERGE_RATIO 10
+#define BTREE_MERGE_RATIO 5
+#define RANDOM_FACTOR 5
 
 #define USE_BLOOM_FILTER 1
 #define USE_BLOOM_FILTER_STATIC 0
@@ -1706,6 +1707,8 @@ private:
     size_t bits;
     size_t bits_static;
 
+    double btree_merge_ratio;
+
 public:
     // *** Constructors and Destructor
 
@@ -1715,6 +1718,8 @@ public:
         : m_root(NULL), m_headleaf(NULL), m_tailleaf(NULL), m_allocator(alloc),
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL) //h
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -1733,6 +1738,8 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL), //h
           m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -1752,6 +1759,8 @@ public:
         : m_root(NULL), m_headleaf(NULL), m_tailleaf(NULL), m_allocator(alloc),
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL) //h
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -1774,6 +1783,8 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       bits_static = 0;
       //bloom filter
@@ -3021,7 +3032,7 @@ public:
     inline std::pair<iterator, bool> insert2(const key_type& key, const data_type& data)
     {
       //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
       }
 
@@ -3034,7 +3045,7 @@ public:
     inline std::pair<iterator, bool> update2(const key_type& key, const data_type& data)
     {
       //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
       }
 
@@ -5301,7 +5312,7 @@ public:
       //bloom filter
       if (USE_BLOOM_FILTER) {
 	free(bloom_filter);
-	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/BTREE_MERGE_RATIO);
+	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/btree_merge_ratio);
       }
     } //END merge
 

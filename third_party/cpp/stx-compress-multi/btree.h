@@ -55,7 +55,8 @@
 
 #define BTREE_MERGE 1
 #define BTREE_MERGE_THRESHOLD 100
-#define BTREE_MERGE_RATIO 10
+#define BTREE_MERGE_RATIO 5
+#define RANDOM_FACTOR 5
 
 #define USE_BLOOM_FILTER 1
 #define LITTLEENDIAN 1
@@ -2153,6 +2154,8 @@ private:
     char* bloom_filter;
     size_t bits;
 
+    double btree_merge_ratio;
+
     //huanchen-stats
     uint32_t leaf_size;
     uint32_t leaf_static_size;
@@ -2177,6 +2180,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -2204,6 +2210,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL), m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -2233,6 +2242,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -2263,6 +2275,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_leaf_buffer(NULL), m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
+      m_compressed_data_size = 0;
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -3717,7 +3732,7 @@ private:
     std::pair<iterator, bool> insert_start(const key_type& key, const data_type& value)
     {
       //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
       }
 
@@ -5961,7 +5976,7 @@ public:
       //bloom filter
       if (USE_BLOOM_FILTER) {
 	free(bloom_filter);
-	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/BTREE_MERGE_RATIO);
+	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/btree_merge_ratio);
       }
 
     } //END merge

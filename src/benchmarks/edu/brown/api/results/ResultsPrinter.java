@@ -191,6 +191,19 @@ public class ResultsPrinter implements BenchmarkInterest {
             sb.append(StringUtil.prefix(h.toString((int)(width * 0.5)), "   "));
             sb.append(String.format("\n%s\n", StringUtil.repeat("=", width)));
         }
+
+	int fullPercentiles[] = new int[100];
+	for (int i = 0; i < 100; ++i)
+            fullPercentiles[i] = i + 1;
+        Histogram<Integer> allLatencies = results.getAllTotalLatencies();
+	double[] intervalLatency = HistogramUtil.percentile(allLatencies, fullPercentiles);
+        sb.append("Total latency by percentile:\n");
+
+	for (int i = 0; i < fullPercentiles.length; ++i) {
+            sb.append(String.format("%d %f ", fullPercentiles[i], intervalLatency[i]));
+        }
+
+        sb.append(String.format("\n%s\n", StringUtil.repeat("=", width)));
         
         return (sb.toString());
     }
@@ -234,7 +247,7 @@ public class ResultsPrinter implements BenchmarkInterest {
         // INTERVAL LATENCY
         Histogram<Integer> lastLatencies = results.getLastTotalLatencies();
         double intervalLatency = HistogramUtil.sum(lastLatencies) / (double)lastLatencies.getSampleCount();
-//        double[] intervalPerLatency = HistogramUtil.percentile(lastLatencies, percentiles);
+	//double[] intervalPerLatency = HistogramUtil.percentile(lastLatencies, percentiles);
         
         // TOTAL LATENCY
         Histogram<Integer> allLatencies = results.getAllTotalLatencies();        

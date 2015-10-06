@@ -257,7 +257,7 @@ public:
     size_t getSize() const { return m_entries->size(); }
     
     int64_t getMemoryEstimate() const {
-        return m_memoryEstimate;
+      return m_memoryEstimate + m_entries->get_bloom_filter_size() + m_entries->get_compressed_data_size() + m_entries->get_leaf_buffer_size();
     }
     
     std::string getTypeName() const { return "BinaryTreeMultiMapIndex"; };

@@ -269,7 +269,7 @@ public:
         }*/
         //h_index::currentIndexID  = m_id;
         //return h_index::indexMemoryTable[m_id];
-        return m_memoryEstimate;
+      return m_memoryEstimate + m_entries->get_bloom_filter_size();
     }
     
     std::string getTypeName() const { return "BinaryTreeUniqueIndex"; };

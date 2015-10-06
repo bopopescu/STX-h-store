@@ -370,7 +370,7 @@ public:
     }
 
     //bloom filter
-    inline size_type bloom_filter_size() const
+    inline size_type get_bloom_filter_size() const
     {
         return tree.bloom_filter_size();
     }

@@ -340,6 +340,12 @@ public:
     }
 
     //huanchen-stats
+    //bloom filter
+    inline size_type get_bloom_filter_size() const
+    {
+        return tree.bloom_filter_size();
+    }
+
     inline const uint32_t get_static_data_size() const {
       return tree.get_static_data_size();
     }

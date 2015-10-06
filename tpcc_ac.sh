@@ -67,13 +67,15 @@ for memory in allmt; do
         #duration=900000
     #fi
     duration=720000
-    mkdir -p "output-tpcc-3/$memory"
+    #mkdir -p "output-tpcc/$memory"
+    mkdir -p "output-tpcc"
     #mkdir "tmp"
     #ant clean build
 
     #for round in 1 2 3 4 5; do
     for round in 1; do
-        OUTPUT_PREFIX="output-tpcc-3/$memory/$round-tpcc-T10000-E1000-$memory"
+        #OUTPUT_PREFIX="output-tpcc/$memory/$round-tpcc-T10000-E1000-$memory"
+	OUTPUT_PREFIX="output-tpcc/$round-tpcc-T10000-E1000"
         #OUTPUT_PREFIX="tmp/tpcc"
         LOG_PREFIX="logs/tpcc"
         echo $OUTPUT_PREFIX

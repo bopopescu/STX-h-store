@@ -54,14 +54,15 @@
 
 #define BTREE_MERGE 1
 #define BTREE_MERGE_THRESHOLD 100
-#define BTREE_MERGE_RATIO 10
+#define BTREE_MERGE_RATIO 5
+#define RANDOM_FACTOR 5
 
 #define USE_BLOOM_FILTER 1
 #define LITTLEENDIAN 1
 #define BITS_PER_KEY 8
 #define K 2
 
-#define MAX_VALUES_PER_KEY 512
+#define MAX_VALUES_PER_KEY 4096
 
 // *** Debugging Macros
 
@@ -1798,6 +1799,8 @@ private:
     //huanchen-stats
     uint32_t static_data_size;
 
+    double btree_merge_ratio;
+
 public:
     // *** Constructors and Destructor
 
@@ -1807,6 +1810,8 @@ public:
         : m_root(NULL), m_headleaf(NULL), m_tailleaf(NULL), m_allocator(alloc),
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL) //h
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -1823,6 +1828,8 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL), //h
           m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -1840,6 +1847,8 @@ public:
         : m_root(NULL), m_headleaf(NULL), m_tailleaf(NULL), m_allocator(alloc),
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL) //h
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -1860,6 +1869,8 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_key_less(kcf), m_allocator(alloc)
     {
+      btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+
       bits = 0;
       //bloom filter
       if (USE_BLOOM_FILTER)
@@ -3088,7 +3099,7 @@ private:
     std::pair<iterator, bool> insert_start(const key_type& key, const data_type& value)
     {
       //merge
-      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * BTREE_MERGE_RATIO) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
+      if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
       }
 
@@ -5055,6 +5066,9 @@ private:
     //huanchen===================================================================================
 public:
     void merge() {
+      //std::cout << "MERGE START=================================================================\n";
+      //std::cout << "# items dynamic = " << m_stats.itemcount << "\n";
+      //std::cout << "# items static = " << m_stats_static.itemcount << "\n";
       leaf_node *ln = m_headleaf; //dynamic leaf cursor
       leaf_multidata_node *ln_static = m_headleaf_static; //static leaf cursor
       int curslot = 0; //static leaf slot cursor
@@ -5395,8 +5409,14 @@ public:
       //bloom filter
       if (USE_BLOOM_FILTER) {
 	free(bloom_filter);
-	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/BTREE_MERGE_RATIO);
+	bloom_filter = CreateEmptyFilter(m_stats_static.itemcount/btree_merge_ratio);
       }
+
+      //std::cout << "-----------------------------------------------------\n";
+      //std::cout << "# items dynamic = " << m_stats.itemcount << "\n";
+      //std::cout << "# items static = " << m_stats_static.itemcount << "\n";
+      //std::cout << "MERGE END=================================================================\n";
+
     } //END merge
 
     int height() {
