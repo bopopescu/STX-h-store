@@ -27,8 +27,8 @@ CLIENT_HOSTS=( \
 )
 
 BASE_CLIENT_THREADS=1
-BASE_SITE_MEMORY=4096
-BASE_SITE_MEMORY_PER_PARTITION=512
+BASE_SITE_MEMORY=8192
+BASE_SITE_MEMORY_PER_PARTITION=1024
 BASE_PROJECT="tpcc"
 BASE_DIR=`pwd`
 #BASE_DIR="/home/huanchen"
@@ -39,6 +39,7 @@ ANTICACHE_THRESHOLD=.75
 
 CPU_SITE_BLACKLIST="0,2,4,6,8,10,12,14"
 
+#for round in 1; do
 for round in 1 2 3; do
 #for round in 1 2 3 4 5 6 7 8 9 10; do
 OUTPUT_PREFIX="tpcc-test/$round-tpcc"
@@ -60,11 +61,8 @@ BASE_ARGS=( \
     "-Dsite.jvm_asserts=false" \
     "-Dsite.specexec_enable=false" \
     "-Dsite.cpu_affinity_one_partition_per_core=true" \
-    #"-Dsite.cpu_partition_blacklist=0,2,4,6,8,10,12,14,16,18" \
-    #"-Dsite.cpu_utility_blacklist=0,2,4,6,8,10,12,14,16,18" \
     "-Dsite.network_incoming_limit_txns=50000" \
     "-Dsite.commandlog_enable=false" \
-    #"-Dsite.commandlog_dir=/mnt/pmfs/cmdlog" \
     "-Dsite.txn_incoming_delay=5" \
     "-Dsite.exec_postprocessing_threads=true" \
     "-Dsite.anticache_profiling=false" \
@@ -72,25 +70,21 @@ BASE_ARGS=( \
 
     "-Dsite.cpu_partition_blacklist=${CPU_SITE_BLACKLIST}" \
 
-#    "-Dsite.queue_allow_decrease=true" \
-#    "-Dsite.queue_allow_increase=true" \
-#    "-Dsite.queue_threshold_factor=0.5" \
-
     # Client Params
     "-Dclient.scalefactor=1" \
-    "-Dclient.memory=256" \
+    "-Dclient.memory=512" \
     "-Dclient.txnrate=10000" \
     "-Dclient.warmup=60000" \
     "-Dclient.duration=300000" \
     "-Dclient.shared_connection=false" \
     "-Dclient.blocking=true" \
-    "-Dclient.blocking_concurrent=100" \
-    "-Dclient.throttle_backoff=100" \
+    "-Dclient.blocking_concurrent=120" \
+    #"-Dclient.throttle_backoff=100" \
     "-Dclient.output_interval=true" \
     #"-Dclient.output_anticache_evictions=${OUTPUT_PREFIX}-evictions.csv" \
     "-Dclient.output_memory_stats=${OUTPUT_PREFIX}-memory.csv" \
     "-Dclient.output_csv=${OUTPUT_PREFIX}-results.csv" \
-    "-Dclient.output_index_stats=${OUTPUT_PREFIX}-index.csv" \
+    #"-Dclient.output_index_stats=${OUTPUT_PREFIX}-index.csv" \
 
     # Anti-Caching Experiments
     "-Dsite.anticache_enable=${ENABLE_ANTICACHE}" \

@@ -54,11 +54,12 @@
 
 #define BTREE_MERGE 1
 #define BTREE_MERGE_THRESHOLD 100
-#define BTREE_MERGE_RATIO 5
-#define RANDOM_FACTOR 5
+#define BTREE_MERGE_RATIO 3
+#define RANDOM_FACTOR 50
 
 #define USE_BLOOM_FILTER 1
 #define USE_BLOOM_FILTER_STATIC 0
+#define USE_MIN_MAX 1
 #define LITTLEENDIAN 1
 #define BITS_PER_KEY 8
 #define K 2
@@ -94,6 +95,12 @@
 /// tree.
 #define BTREE_FRIENDS           friend class btree_friend;
 #endif
+
+static unsigned long long rdtsc_timer() {
+  unsigned int lo,hi;
+  __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+  return ((unsigned long long)hi << 32) | lo;
+}
 
 /// STX - Some Template Extensions namespace
 namespace stx_hybrid_compact {
@@ -1702,12 +1709,17 @@ private:
     /// Memory allocator.
     allocator_type m_allocator;
 
+    //bloom filter
     char* bloom_filter;
     char* bloom_filter_static;
     size_t bits;
     size_t bits_static;
 
     double btree_merge_ratio;
+
+    //min-max filter
+    key_type min_key;
+    key_type max_key;
 
 public:
     // *** Constructors and Destructor
@@ -1718,7 +1730,9 @@ public:
         : m_root(NULL), m_headleaf(NULL), m_tailleaf(NULL), m_allocator(alloc),
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL) //h
     {
+      srand(rdtsc_timer());
       btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+      //std::cout << "merge_ratio = " << btree_merge_ratio << "\n";
 
       bits = 0;
       bits_static = 0;
@@ -1738,7 +1752,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL), //h
           m_key_less(kcf), m_allocator(alloc)
     {
+      srand(rdtsc_timer());
       btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+      //std::cout << "merge_ratio = " << btree_merge_ratio << "\n";
 
       bits = 0;
       bits_static = 0;
@@ -1759,7 +1775,9 @@ public:
         : m_root(NULL), m_headleaf(NULL), m_tailleaf(NULL), m_allocator(alloc),
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL) //h
     {
+      srand(rdtsc_timer());
       btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+      //std::cout << "merge_ratio = " << btree_merge_ratio << "\n";
 
       bits = 0;
       bits_static = 0;
@@ -1783,7 +1801,9 @@ public:
           m_root_static(NULL), m_headleaf_static(NULL), m_tailleaf_static(NULL),
           m_key_less(kcf), m_allocator(alloc)
     {
+      srand(rdtsc_timer());
       btree_merge_ratio = BTREE_MERGE_RATIO + (rand() % RANDOM_FACTOR * 0.1);
+      //std::cout << "merge_ratio = " << btree_merge_ratio << "\n";
 
       bits = 0;
       bits_static = 0;
@@ -2500,7 +2520,12 @@ public:
 	  if (!KeyMayMatch_static(reinterpret_cast<const char*>(&key), sizeof(key_type), bloom_filter_static))
 	    return false;
 	}
-
+	/*
+	if (USE_MIN_MAX) {
+	  if (key_less(key, min_key) || key_less(max_key, key))
+	    return false;
+	}
+	*/
         while (!n->isleafnode())
         {
             const inner_node* inner = static_cast<const inner_node*>(n);
@@ -2559,7 +2584,13 @@ public:
 	    return static_end();
 	  }
 	}
-
+	/*
+	if (USE_MIN_MAX) {
+	  if (key_less(key, min_key) || key_less(max_key, key)) {
+	    return static_end();
+	  }
+	}
+	*/
         while (!n->isleafnode())
         {
             const inner_node* inner = static_cast<const inner_node*>(n);
@@ -3034,6 +3065,12 @@ public:
       //merge
       if ((BTREE_MERGE == 1) && ((m_stats.itemcount * btree_merge_ratio) >= m_stats_static.itemcount) && (m_stats.itemcount >= BTREE_MERGE_THRESHOLD)) {
         merge();
+      }
+
+      if (USE_MIN_MAX) {
+	if (!m_root_static || key_less(key, min_key) || key_less(max_key, key)) {
+	  return insert_start(key, data);
+	}
       }
 
       if (find_static(key) != static_end()) {
@@ -3574,6 +3611,12 @@ public:
 	  return false;
 	}
       }
+      /*
+      if (USE_MIN_MAX) {
+	if (key_less(key, min_key) || key_less(max_key, key))
+	  return false;
+      }
+      */
       iterator iter = find_static(key);
       if (iter == static_end()) {
 	return false;
@@ -3615,6 +3658,12 @@ public:
 	  return 0;
 	}
       }
+      /*
+      if (USE_MIN_MAX) {
+	if (key_less(key, min_key) || key_less(max_key, key))
+	  return 0;
+      }
+      */
         size_type c = 0;
 
         while (erase_one_static(key))
@@ -3663,6 +3712,12 @@ public:
 	  return;
 	}
       }
+      /*
+      if (USE_MIN_MAX) {
+	if (key_less(iter.get_currnode()->slotkey[iter.get_currslot()], min_key) || key_less(max_key, iter.get_currnode()->slotkey[iter.get_currslot()]))
+	  return;
+      }
+      */
       if (iter != static_end()) {
 	iter.get_currnode()->slotdata[iter.get_currslot()] = (data_type)0;	
       }
@@ -5081,6 +5136,13 @@ public:
         m_headleaf_static = allocate_leaf_static();
         m_headleaf_static->prevleaf = NULL;
         ln_static = m_headleaf_static;
+
+	//min-max
+	if (USE_MIN_MAX) {
+	  min_key = ln->slotkey[0];
+	  max_key = ln->slotkey[0];
+	}
+
         while (ln != NULL) {
           for (int slot = 0; slot < ln->slotuse; slot++) {
             if (curslot >= leafslotmax) {
@@ -5091,12 +5153,24 @@ public:
               curslot = 0;
               node_count++;
             }
+
             ln_static->slotkey[curslot] = ln->slotkey[slot];
             ln_static->slotdata[curslot] = ln->slotdata[slot];
 	    ln_static->slotuse++;
+
 	    //bloom filter
-	    if (USE_BLOOM_FILTER_STATIC)
+	    if (USE_BLOOM_FILTER_STATIC) {
 	      InsertToFilter_static(reinterpret_cast<const char*>(&(ln_static->slotkey[curslot])), sizeof(key_type), bloom_filter_static);
+	    }
+
+	    if (USE_MIN_MAX) {
+	      //min-max
+	      if (key_less(ln->slotkey[slot], min_key))
+		min_key = ln->slotkey[slot];
+	      if (key_less(max_key, ln->slotkey[slot]))
+		max_key = ln->slotkey[slot];
+	    }
+
             curslot++;
             m_stats_static.itemcount++;
           } //END for
@@ -5135,11 +5209,22 @@ public:
             else if (key_less(ln->slotkey[slot], ln_static->slotkey[slot_static])) {
               ln_new->slotkey[slot_new] = ln->slotkey[slot];
               ln_new->slotdata[slot_new] = ln->slotdata[slot];
+
+	      //bloom filter
+	      if (USE_BLOOM_FILTER_STATIC) {
+		InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
+	      }
+
+	      if (USE_MIN_MAX) {
+		//min-max
+		if (key_less(ln->slotkey[slot], min_key))
+		  min_key = ln->slotkey[slot];
+		if (key_less(max_key, ln->slotkey[slot]))
+		  max_key = ln->slotkey[slot];
+	      }
+
               slot++;
 	      ln_new->slotuse++;
-	      //bloom filter
-	      if (USE_BLOOM_FILTER_STATIC)
-		InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
 	      slot_new++;
 	      m_stats_static.itemcount++;
             }
@@ -5148,9 +5233,12 @@ public:
               ln_new->slotdata[slot_new] = ln_static->slotdata[slot_static];
               slot_static++;
 	      ln_new->slotuse++;
+
 	      //bloom filter
-	      if (USE_BLOOM_FILTER_STATIC)
+	      if (USE_BLOOM_FILTER_STATIC) {
 		InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
+	      }
+
 	      slot_new++;
 	      m_stats_static.itemcount++;
             }
@@ -5182,13 +5270,25 @@ public:
               slot_new = 0;
               node_count++;
             }
+
             ln_new->slotkey[slot_new] = ln->slotkey[slot];
             ln_new->slotdata[slot_new] = ln->slotdata[slot];
+
+	    //bloom filter
+	    if (USE_BLOOM_FILTER_STATIC) {
+	      InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
+	    }
+
+	    if (USE_MIN_MAX) {
+	      //min-max
+	      if (key_less(ln->slotkey[slot], min_key))
+		min_key = ln->slotkey[slot];
+	      if (key_less(max_key, ln->slotkey[slot]))
+		max_key = ln->slotkey[slot];
+	    }
+
             ln_new->slotuse++;
             slot++;
-	    //bloom filter
-	    if (USE_BLOOM_FILTER_STATIC)
-	      InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
             slot_new++;
             m_stats_static.itemcount++;
           }
@@ -5208,13 +5308,17 @@ public:
               slot_new = 0;
               node_count++;
             }
+
             ln_new->slotkey[slot_new] = ln_static->slotkey[slot_static];
             ln_new->slotdata[slot_new] = ln_static->slotdata[slot_static];
             ln_new->slotuse++;
             slot_static++;
+
 	    //bloom filter
-	    if (USE_BLOOM_FILTER_STATIC)
+	    if (USE_BLOOM_FILTER_STATIC) {
 	      InsertToFilter_static(reinterpret_cast<const char*>(&(ln_new->slotkey[slot_new])), sizeof(key_type), bloom_filter_static);
+	    }
+
             slot_new++;
             m_stats_static.itemcount++;
           }

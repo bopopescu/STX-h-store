@@ -23,8 +23,8 @@ CLIENT_HOSTS=( \
 )
 
 BASE_CLIENT_THREADS=1
-BASE_SITE_MEMORY=4096
-BASE_SITE_MEMORY_PER_PARTITION=512
+BASE_SITE_MEMORY=8192
+BASE_SITE_MEMORY_PER_PARTITION=1024
 BASE_PROJECT="voter"
 BASE_DIR=`pwd`
 
@@ -36,6 +36,7 @@ CPU_SITE_BLACKLIST="0,2,4,6,8,10,12,14"
 
 #for round in 1 2 3 4 5 6 7 8 9 10; do
 for round in 1 2 3; do
+#for round in 1; do
 OUTPUT_PREFIX="voter-test/$round-voter"
 echo $OUTPUT_PREFIX
 BASE_ARGS=( \
@@ -54,9 +55,7 @@ BASE_ARGS=( \
     "-Dsite.jvm_asserts=false" \
     "-Dsite.specexec_enable=false" \
     "-Dsite.cpu_affinity_one_partition_per_core=true" \
-    #"-Dsite.cpu_partition_blacklist=0,2,4,6,8,10,12,14,16,18" \
-    #"-Dsite.cpu_utility_blacklist=0,2,4,6,8,10,12,14,16,18" \
-    "-Dsite.network_incoming_limit_txns=240000" \
+    "-Dsite.network_incoming_limit_txns=400000" \
     "-Dsite.commandlog_enable=false" \
     "-Dsite.txn_incoming_delay=5" \
     "-Dsite.exec_postprocessing_threads=true" \
@@ -68,7 +67,7 @@ BASE_ARGS=( \
     # Client Params
     "-Dclient.scalefactor=1" \
     "-Dclient.memory=512" \
-    "-Dclient.txnrate=40000" \
+    "-Dclient.txnrate=50000" \
     "-Dclient.warmup=60000" \
     "-Dclient.duration=300000 "\
     "-Dclient.shared_connection=false" \
@@ -78,7 +77,7 @@ BASE_ARGS=( \
     "-Dclient.output_interval=true" \
     "-Dclient.output_memory_stats=${OUTPUT_PREFIX}-memory.csv" \
     "-Dclient.output_csv=${OUTPUT_PREFIX}-results.csv" \
-    "-Dclient.output_index_stats=${OUTPUT_PREFIX}-index.csv" \
+    #"-Dclient.output_index_stats=${OUTPUT_PREFIX}-index.csv" \
     
     # Anti-Caching Experiments
     "-Dsite.anticache_enable=${ENABLE_ANTICACHE}" \

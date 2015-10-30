@@ -70,15 +70,15 @@ for memory in allmt; do
         #duration=900000
     #fi
     duration=720000
-    mkdir -p "output-tpcc-3/$memory"
+    mkdir -p "output-articles"
     #mkdir "tmp"
     #ant clean build
 
     #for round in 1 2 3 4 5; do
     for round in 1; do
-        OUTPUT_PREFIX="output-tpcc-3/$memory/$round-tpcc-T10000-E1000-$memory"
+        OUTPUT_PREFIX="output-articles/$round-articles"
         #OUTPUT_PREFIX="tmp/tpcc"
-        LOG_PREFIX="logs/tpcc"
+        LOG_PREFIX="logs/articles"
         echo $OUTPUT_PREFIX
         #sed -i '$ d' "properties/benchmarks/ycsb.properties"
         #echo "skew_factor = $skew" >> "properties/benchmarks/ycsb.properties"
@@ -132,8 +132,8 @@ for memory in allmt; do
             #"-Dclient.interval=5000" \
             "-Dclient.shared_connection=false" \
             "-Dclient.blocking=true" \
-            "-Dclient.blocking_concurrent=600" \
-            "-Dclient.throttle_backoff=100" \
+            "-Dclient.blocking_concurrent=500" \
+            #"-Dclient.throttle_backoff=100" \
             "-Dclient.output_anticache_evictions=${OUTPUT_PREFIX}-evictions.csv" \
             "-Dclient.output_memory_stats=${OUTPUT_PREFIX}-memory.csv" \
             #"-Dclient.output_index_stats=${OUTPUT_PREFIX}-indexes.csv" \
@@ -150,7 +150,7 @@ for memory in allmt; do
             "-Dsite.anticache_reset=false" \
             "-Dsite.anticache_block_size=${ANTICACHE_BLOCK_SIZE}" \
             "-Dsite.anticache_check_interval=5000" \
-            "-Dsite.anticache_threshold_mb=4000" \
+            "-Dsite.anticache_threshold_mb=3000" \
             "-Dsite.anticache_blocks_per_eviction=250" \
             #"-Dsite.anticache_blocks_per_eviction=$eviction_size" \
             "-Dsite.anticache_max_evicted_blocks=1000000" \

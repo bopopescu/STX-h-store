@@ -20,8 +20,8 @@ CLIENT_HOSTS=( \
     )
 
 BASE_CLIENT_THREADS=1
-BASE_SITE_MEMORY=4096
-BASE_SITE_MEMORY_PER_PARTITION=512
+BASE_SITE_MEMORY=8192
+BASE_SITE_MEMORY_PER_PARTITION=1024
 BASE_PROJECT="voter"
 BASE_DIR=`pwd`
 SPACE="        "
@@ -55,17 +55,16 @@ for memory in allmt; do
         #sed -i "66c#define\ ALLMT\ 1" src/ee/indexes/tableindexfactory.cpp
         #duration=900000
     #fi
-    #duration=720000
-    duration=390000
-    mkdir -p "output-tpcc-3/$memory"
+    duration=720000
+    mkdir -p "output-voter"
     #mkdir "tmp"
     #ant clean build
 
     #for round in 1 2 3 4 5; do
     for round in 1; do
-        OUTPUT_PREFIX="output-tpcc-3/$memory/$round-tpcc-T10000-E1000-$memory"
+        OUTPUT_PREFIX="output-voter/$round-voter"
         #OUTPUT_PREFIX="tmp/tpcc"
-        LOG_PREFIX="logs/tpcc"
+        LOG_PREFIX="logs/voter"
         echo $OUTPUT_PREFIX
         #sed -i '$ d' "properties/benchmarks/ycsb.properties"
         #echo "skew_factor = $skew" >> "properties/benchmarks/ycsb.properties"
@@ -91,12 +90,10 @@ for memory in allmt; do
         "-Dsite.jvm_asserts=false" \
             "-Dsite.specexec_enable=false" \
             "-Dsite.cpu_affinity_one_partition_per_core=true" \
-            #"-Dsite.cpu_partition_blacklist=0,2,4,6,8,10,12,14,16,18" \
-            #"-Dsite.cpu_utility_blacklist=0,2,4,6,8,10,12,14,16,18" \
             "-Dsite.network_incoming_limit_txns=240000" \
             "-Dsite.commandlog_enable=false" \
             "-Dsite.txn_incoming_delay=5" \
-            "-Dsite.exec_postprocessing_threads=false" \
+            "-Dsite.exec_postprocessing_threads=true" \
             #"-Dsite.anticache_eviction_distribution=$eviction_distribution" \
             "-Dsite.anticache_eviction_distribution=proportional" \
             #"-Dsite.log_dir=$LOG_PREFIX" \
@@ -110,8 +107,8 @@ for memory in allmt; do
 
             # Client Params
         "-Dclient.scalefactor=1" \
-            "-Dclient.memory=512" \
-            "-Dclient.txnrate=40000" \
+            "-Dclient.memory=1024" \
+            "-Dclient.txnrate=50000" \
             "-Dclient.warmup=0000" \
 	    #"-Dclient.warmup=60000" \
 	    "-Dclient.duration=$duration" \
@@ -119,8 +116,8 @@ for memory in allmt; do
             #"-Dclient.interval=5000" \
             "-Dclient.shared_connection=false" \
             "-Dclient.blocking=true" \
-            "-Dclient.blocking_concurrent=280" \
-            "-Dclient.throttle_backoff=100" \
+            "-Dclient.blocking_concurrent=400" \
+            #"-Dclient.throttle_backoff=100" \
             "-Dclient.output_anticache_evictions=${OUTPUT_PREFIX}-evictions.csv" \
             "-Dclient.output_memory_stats=${OUTPUT_PREFIX}-memory.csv" \
             #"-Dclient.output_index_stats=${OUTPUT_PREFIX}-indexes.csv" \
@@ -144,7 +141,7 @@ for memory in allmt; do
             #    "-Dsite.anticache_evict_size=${ANTICACHE_EVICT_SIZE}" \
             "-Dsite.anticache_threshold=${ANTICACHE_THRESHOLD}" \
             "-Dclient.anticache_enable=false" \
-            "-Dclient.anticache_evict_interval=10000" \
+            "-Dclient.anticache_evict_interval=5000" \
             "-Dclient.anticache_evict_size=102400" \
             "-Dclient.output_csv=${OUTPUT_PREFIX}-results.csv" \
 

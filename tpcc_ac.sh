@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#UtilityWorkMessage ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 trap onexit 1 2 3 15
 function onexit() {
@@ -31,8 +31,8 @@ CLIENT_HOSTS=( \
     )
 
 BASE_CLIENT_THREADS=1
-BASE_SITE_MEMORY=4096
-BASE_SITE_MEMORY_PER_PARTITION=512
+BASE_SITE_MEMORY=8192
+BASE_SITE_MEMORY_PER_PARTITION=1024
 BASE_PROJECT="tpcc"
 BASE_DIR=`pwd`
 SPACE="        "
@@ -75,7 +75,7 @@ for memory in allmt; do
     #for round in 1 2 3 4 5; do
     for round in 1; do
         #OUTPUT_PREFIX="output-tpcc/$memory/$round-tpcc-T10000-E1000-$memory"
-	OUTPUT_PREFIX="output-tpcc/$round-tpcc-T10000-E1000"
+	OUTPUT_PREFIX="output-tpcc/$round-tpcc"
         #OUTPUT_PREFIX="tmp/tpcc"
         LOG_PREFIX="logs/tpcc"
         echo $OUTPUT_PREFIX
@@ -103,12 +103,10 @@ for memory in allmt; do
         "-Dsite.jvm_asserts=false" \
             "-Dsite.specexec_enable=false" \
             "-Dsite.cpu_affinity_one_partition_per_core=true" \
-            #"-Dsite.cpu_partition_blacklist=0,2,4,6,8,10,12,14,16,18" \
-            #"-Dsite.cpu_utility_blacklist=0,2,4,6,8,10,12,14,16,18" \
             "-Dsite.network_incoming_limit_txns=50000" \
             "-Dsite.commandlog_enable=false" \
             "-Dsite.txn_incoming_delay=5" \
-            "-Dsite.exec_postprocessing_threads=false" \
+            "-Dsite.exec_postprocessing_threads=true" \
             #"-Dsite.anticache_eviction_distribution=$eviction_distribution" \
             "-Dsite.anticache_eviction_distribution=proportional" \
             #"-Dsite.log_dir=$LOG_PREFIX" \
@@ -129,8 +127,8 @@ for memory in allmt; do
             "-Dclient.interval=2000" \
             "-Dclient.shared_connection=false" \
             "-Dclient.blocking=true" \
-            "-Dclient.blocking_concurrent=100" \
-            "-Dclient.throttle_backoff=100" \
+            "-Dclient.blocking_concurrent=120" \
+            #"-Dclient.throttle_backoff=100" \
             "-Dclient.output_anticache_evictions=${OUTPUT_PREFIX}-evictions.csv" \
             "-Dclient.output_memory_stats=${OUTPUT_PREFIX}-memory.csv" \
             #"-Dclient.output_index_stats=${OUTPUT_PREFIX}-indexes.csv" \
@@ -147,7 +145,7 @@ for memory in allmt; do
             "-Dsite.anticache_reset=false" \
             "-Dsite.anticache_block_size=${ANTICACHE_BLOCK_SIZE}" \
             "-Dsite.anticache_check_interval=5000" \
-            "-Dsite.anticache_threshold_mb=10000" \
+            "-Dsite.anticache_threshold_mb=5000" \
             "-Dsite.anticache_blocks_per_eviction=250" \
             #"-Dsite.anticache_blocks_per_eviction=$eviction_size" \
             "-Dsite.anticache_max_evicted_blocks=1000000" \
